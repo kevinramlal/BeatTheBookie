@@ -1,6 +1,12 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+"""
+This code finds the intercepts of running regression on the outcomes 
+for home win, draw, away win.
+These intercepts, as well as the concesus probabilities
+are then used in the beatthebookie strategy (see page 7) !
+"""
 
 dir_path = '../data/'
 data = pd.read_csv(dir_path + "closing_odds.csv")
@@ -51,12 +57,12 @@ print(('Proportion of Away victories: ' + str(prior_away) + "\n"))
 
 # Calculate accuracy of prediction as a function of the implicit probability
 # contained in the odds
-odds_bins = np.arange(0, 1, 0.0125)  # probability bins
+odds_bins = np.arange(0, 1, 0.0125)  # probability bins (80 bins)
 min_games = 100
 
 # Home victory
-p_home = 1 / data['avg_odds_home_win']
-p_draw = 1 / data['avg_odds_draw']
+p_home = 1 / data['avg_odds_home_win'] #1/omega (see page 5)
+p_draw = 1 / data['avg_odds_draw'] #we dont need this for our data
 p_away = 1 / data['avg_odds_away_win']
 
 home_score = data['home_score']
@@ -70,6 +76,7 @@ bin_odds_home_mean = []
 bin_odds_draw_mean = []
 bin_odds_away_mean = []
 
+#binning the data according to concensuus probability (page 6)
 for bn in range(0, len(odds_bins) - 2):
     #print("bin " + str(bn + 1) + " from" + str(len(odds_bins) -1) + "\n")
     # Get the data from the bin
@@ -78,7 +85,7 @@ for bn in range(0, len(odds_bins) - 2):
     inds_away = np.where((p_away > odds_bins[bn]) & (p_away <= odds_bins[bn + 1]))[0]
     # Get accuracy for home, draw away
     if (len(inds_home) >= min_games):
-        acc_home.append(float(sum(home_score[inds_home] > away_score[inds_home])) / len(inds_home))
+        acc_home.append(float(sum(home_score[inds_home] > away_score[inds_home])) / len(inds_home)) #get actual probabilty
         bin_odds_home_mean.append(np.mean(p_home[inds_home]))
     if (len(inds_draw) >= min_games):
         acc_draw.append(float(sum(home_score[inds_draw] == away_score[inds_draw])) / len(inds_draw))
@@ -129,3 +136,5 @@ print('Draw r2: %1.3f, slope: %1.3f, intercept: %1.3f \n' % (r2_score(y_draw, dr
 print('Away r2: %1.3f, slope: %1.3f, intercept: %1.3f \n' % (r2_score(y_away, away_preds),
       away_regr.coef_[0][0], away_regr.intercept_[0]))
 
+#IMPORTANT
+#The intercept terms printed are the "alpha" terms in the strategy 
